@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>قارئ القصص الألمانية</title>
+<meta name="description" content="طبق باش تقرا قصص قصيرة بالألمانية وتتعلم كلمات جداد">
+<meta name="theme-color" content="#b5482a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --card-bg: #ffffff;
+    --text: #2b2620;
+    --muted: #7a7266;
+    --accent: #b5482a;
+    --accent-2: #2f6f5e;
+    --border: #e6e0d4;
+    --highlight-bg: #fdeee4;
+    --shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1a17;
+      --card-bg: #262320;
+      --text: #eee8dd;
+      --muted: #a89e8e;
+      --accent: #e07a52;
+      --accent-2: #5fbfa3;
+      --border: #3a352e;
+      --highlight-bg: #3a2a20;
+      --shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1c1a17;
+    --card-bg: #262320;
+    --text: #eee8dd;
+    --muted: #a89e8e;
+    --accent: #e07a52;
+    --accent-2: #5fbfa3;
+    --border: #3a352e;
+    --highlight-bg: #3a2a20;
+    --shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    padding: 16px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  header.top {
+    text-align: center;
+    margin-bottom: 18px;
+  }
+  header.top h1 {
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+    color: var(--accent);
+  }
+  header.top p { color: var(--muted); margin: 0; font-size: 0.9rem; }
+
+  .promo-btn {
+    margin-top: 10px;
+    background: var(--accent-2);
+    color: #fff;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 22px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  #promoOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 90;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  #promoBox {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: var(--shadow);
+    position: relative;
+    text-align: center;
+  }
+  #promoBox h2 { color: var(--accent); margin-top: 0; }
+  .promo-close {
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .app-download-btn {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    padding: 12px 26px;
+    border-radius: 24px;
+    font-size: 1rem;
+    margin: 14px 0;
+  }
+  .promo-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 18px 0;
+  }
+  .promo-divider::before, .promo-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  #promoForm { display: grid; gap: 10px; text-align: right; }
+  #promoForm input {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+  #promoForm button {
+    background: var(--accent-2);
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+  }
+  #promoMsg { font-size: 0.85rem; color: var(--accent-2); min-height: 18px; }
+
+  .levels {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .level-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  .level-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  .story-list {
+    display: grid;
+    gap: 12px;
+  }
+  .story-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: transform 0.15s ease;
+  }
+  .story-card:active { transform: scale(0.98); }
+  .story-card h3 {
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .badge {
+    font-size: 0.7rem;
+    color: var(--accent-2);
+    border: 1px solid var(--accent-2);
+    border-radius: 10px;
+    padding: 1px 8px;
+    white-space: nowrap;
+  }
+  .story-card p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+
+  /* Reader view */
+  #reader {
+    display: none;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .reader-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .back-btn, .fs-btn {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  .fs-controls { display: flex; gap: 6px; align-items: center; }
+
+  #storyTitle {
+    text-align: center;
+    color: var(--accent);
+    margin: 4px 0 16px;
+  }
+  #storyText {
+    direction: ltr;
+    text-align: left;
+    line-height: 2;
+    font-size: 1.15rem;
+    unicode-bidi: isolate;
+  }
+  #storyText p { margin: 0 0 1em; }
+
+  .w {
+    cursor: pointer;
+    border-bottom: 1.5px dashed var(--accent-2);
+    padding: 0 1px;
+    border-radius: 3px;
+    transition: background 0.15s;
+  }
+  .w:hover, .w.active { background: var(--highlight-bg); }
+
+  #tooltip {
+    position: fixed;
+    display: none;
+    background: var(--accent);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    direction: rtl;
+    box-shadow: var(--shadow);
+    z-index: 50;
+    max-width: 240px;
+    text-align: center;
+  }
+  #tooltip::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px 6px 0 6px;
+    border-style: solid;
+    border-color: var(--accent) transparent transparent transparent;
+  }
+  .hint {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-top: 16px;
+  }
+  footer.credit {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-top: 24px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>📖 قارئ القصص الألمانية</h1>
+    <p>اقرا قصص قصيرة بالألمانية، وكليكي على أي كلمة تحتها خط باش تشوف معناها بالعربية</p>
+    <button class="promo-btn" onclick="openPromo()">📱 حمّل التطبيق ديالنا</button>
+  </header>
+
+  <div id="listView">
+    <div class="levels" id="levels"></div>
+    <div class="story-list" id="storyList"></div>
+  </div>
+
+  <div id="reader">
+    <div class="reader-toolbar">
+      <button class="back-btn" onclick="goBack()">⟵ رجوع</button>
+      <div class="fs-controls">
+        <button class="fs-btn" onclick="changeFont(-0.1)">A-</button>
+        <button class="fs-btn" onclick="changeFont(0.1)">A+</button>
+      </div>
+    </div>
+    <h2 id="storyTitle"></h2>
+    <div id="storyText"></div>
+    <p class="hint">💡 كليكي على أي كلمة ملونة باش تعرف معناها</p>
+  </div>
+
+  <footer class="credit">قصص أصلية بسيطة لتعلم الألمانية · مستويات A1 - B1</footer>
+</div>
+
+<div id="tooltip"></div>
+
+<div id="promoOverlay" onclick="if(event.target===this) closePromo()">
+  <div id="promoBox">
+    <button class="promo-close" onclick="closePromo()">✕</button>
+    <h2>📱 حمّل التطبيق ديالنا</h2>
+    <p style="color:var(--muted); font-size:0.9rem;">قرا القصص فأي وقت، حتى بلا انترنت</p>
+    <a class="app-download-btn" href="#" id="downloadLink" target="_blank" rel="noopener">⬇️ حمّل التطبيق</a>
+
+    <div class="promo-divider">ولا</div>
+
+    <p style="font-size:0.9rem; color:var(--muted); margin-bottom:8px;">ما بغيتيش تحمل؟ خلينا نعلموك ملي يخرج (أو عطينا رأيك):</p>
+    <form id="promoForm" onsubmit="return submitPromo(event)">
+      <input type="text" id="promoName" placeholder="السميّة (اختياري)">
+      <input type="email" id="promoEmail" placeholder="الإيميل" required>
+      <button type="submit">إرسال</button>
+    </form>
+    <div id="promoMsg"></div>
+  </div>
+</div>
+
+<script>
+// Each word to gloss: {de: "word", tr: "meaning in Arabic"}
+function w(de, tr) {
+  return '<span class="w" data-tr="' + tr.replace(/"/g,'&quot;') + '">' + de + '</span>';
+}
+
+const stories = [
+  {
+    id: "katze",
+    level: "A1",
+    title: "Die kleine Katze",
+    desc: "قصة بسيطة على قطة صغيرة",
+    html: `<p>Es war einmal eine ${w("kleine","صغيرة")} Katze. Sie ${w("hieß","كانت تسمى")} Mimi. Mimi ${w("wohnte","كانت تسكن")} in einem ${w("Haus","دار")} mit einer Familie.</p>
+<p>Jeden Morgen ${w("trank","كانت تشرب")} Mimi Milch. Dann ${w("spielte","كانت تلعب")} sie im ${w("Garten","الجنان")}. Sie ${w("liebte","كانت تحب")} es, mit einem ${w("Ball","بالو")} zu spielen.</p>
+<p>Eines Tages ${w("fand","لقات")} Mimi einen ${w("Vogel","طير")}. Der Vogel ${w("konnte","كان يقدر")} nicht ${w("fliegen","يطير")}. Mimi ${w("half","عاونات")} dem Vogel. Sie ${w("brachte","جابات")} ihm Wasser und ${w("wartete","تسنات")}.</p>
+<p>Nach ein paar Tagen konnte der Vogel wieder fliegen. Er ${w("dankte","شكر")} Mimi und ${w("flog","طار")} weg. Mimi war sehr ${w("glücklich","فرحانة")}.</p>`
+  },
+  {
+    id: "markt",
+    level: "A1",
+    title: "Ein Tag auf dem Markt",
+    desc: "نهار فالسوق",
+    html: `<p>Am Samstag ${w("ging","مشى")} Herr Ali auf den ${w("Markt","السوق")}. Er ${w("brauchte","كان محتاج")} ${w("Gemüse","خضرة")} und ${w("Obst","فواكه")}.</p>
+<p>Zuerst ${w("kaufte","شرا")} er ${w("Tomaten","ماطيشة")} und ${w("Zwiebeln","بصلة")}. Dann ${w("sah","شاف")} er schöne ${w("Äpfel","تفاح")}. Sie waren nicht ${w("teuer","غاليين")}, also kaufte er ${w("viele","بزاف")}.</p>
+<p>Auf dem Weg nach Hause ${w("traf","تلاقى مع")} er seinen ${w("Freund","صاحبو")} Karim. Sie ${w("sprachen","هضرو")} eine ${w("Weile","شوية")} und ${w("lachten","ضحكو")} zusammen.</p>
+<p>Zu Hause ${w("kochte","طيب")} Herr Ali ein leckeres ${w("Abendessen","عشاء")} für seine Familie.</p>`
+  },
+  {
+    id: "traum",
+    level: "A2",
+    title: "Der Traum vom Reisen",
+    desc: "حلم السفر",
+    html: `<p>Sara ${w("arbeitete","كانت تخدم")} in einem ${w("Büro","بيرو")} in Casablanca. Jeden Tag ${w("träumte","كانت تحلم")} sie davon, die ${w("Welt","الدنيا")} zu ${w("sehen","تشوف")}.</p>
+<p>Sie ${w("sparte","كانت توفر")} jeden Monat etwas ${w("Geld","فلوس")}. Nach einem Jahr hatte sie ${w("genug","بزاف الفلوس")}, um nach Deutschland zu ${w("reisen","تسافر")}.</p>
+<p>In Berlin ${w("besuchte","زارت")} sie viele ${w("Museen","متاحف")} und ${w("probierte","جربات")} neues ${w("Essen","ماكلة")}. Die Menschen dort waren sehr ${w("freundlich","لطاف")}.</p>
+<p>Als sie ${w("zurückkam","رجعات")}, ${w("erzählte","حكات")} sie allen von ihrer ${w("Reise","سفرية")}. Jetzt ${w("plant","كتخطط")} sie schon die ${w("nächste","الجاية")} Reise.</p>`
+  },
+  {
+    id: "fussball",
+    level: "A2",
+    title: "Das wichtige Spiel",
+    desc: "الماتش المهم",
+    html: `<p>Youssef ${w("spielte","كايلعب")} seit fünf Jahren ${w("Fußball","الكورة")}. Er war der beste ${w("Spieler","لاعب")} in seinem ${w("Team","الفريق")}.</p>
+<p>Am ${w("Sonntag","الأحد")} gab es ein sehr wichtiges ${w("Spiel","ماتش")}. ${w("Alle","الجميع")} waren ${w("nervös","قلقين")}, auch der ${w("Trainer","المدرب")}.</p>
+<p>In der ${w("zweiten","الثانية")} Hälfte ${w("schoss","سدد")} Youssef ein ${w("Tor","هدف")}. Das ${w("Stadion","الملعب")} war ${w("laut","صاخب")} vor ${w("Freude","الفرحة")}!</p>
+<p>Am Ende ${w("gewann","ربح")} sein Team das Spiel. Youssef war der ${w("Held","البطل")} des Tages.</p>`
+  },
+  {
+    id: "buch",
+    level: "B1",
+    title: "Ein besonderes Buch",
+    desc: "كتاب خاص",
+    html: `<p>In einer alten ${w("Bibliothek","خزانة الكتب")} ${w("entdeckte","كتشفات")} Layla ein sehr altes ${w("Buch","كتاب")}. Es hatte keinen ${w("Titel","عنوان")} und niemand ${w("wusste","كان يعرف")}, wer es ${w("geschrieben","كتب")} hatte.</p>
+<p>Als sie es zu ${w("öffnen","تحل")} versuchte, ${w("bemerkte","لاحظات")} sie, dass die ${w("Seiten","الصفحات")} sich ${w("veränderten","كتبدل")}. Jedes Mal ${w("erzählte","كانت كتحكي")} das Buch eine ${w("andere","أخرى")} Geschichte.</p>
+<p>Layla ${w("verbrachte","قضات")} Stunden damit, die verschiedenen Geschichten zu ${w("lesen","تقرا")}. Jede Geschichte ${w("handelte","كانت كتهضر")} von ${w("Mut","الشجاعة")} und ${w("Freundschaft","الصداقة")}.</p>
+<p>Am Ende ${w("verstand","فهمات")} sie: Das Buch ${w("zeigte","كان يوري")} jedem ${w("Leser","قارئ")} genau die Geschichte, die er ${w("brauchte","محتاجها")}.</p>`
+  },
+  {
+    id: "regen",
+    level: "A1",
+    title: "Der Regentag",
+    desc: "نهار الشتا",
+    html: `<p>Heute ${w("regnete","تشتات")} es den ganzen Tag. Adam ${w("wollte","كان بغا")} nicht ${w("draußen","برا")} spielen.</p>
+<p>Er ${w("blieb","بقا")} zu Hause und ${w("malte","رسم")} ein ${w("Bild","تصويرة")}. Danach ${w("hörte","سمع")} er ${w("Musik","الموزيك")} und ${w("trank","شرب")} heißen ${w("Tee","أتاي")}.</p>
+<p>Am ${w("Abend","العشية")} ${w("hörte","وقف")} der Regen ${w("auf","")}. Ein schöner ${w("Regenbogen","قوس قزح")} ${w("erschien","بان")} am ${w("Himmel","السما")}.</p>
+<p>Adam war sehr ${w("überrascht","متفاجئ")} und ${w("froh","فرحان")}.</p>`
+  },
+  {
+    id: "geburtstag",
+    level: "A1",
+    title: "Der Geburtstag",
+    desc: "عيد الميلاد",
+    html: `<p>Heute ist der ${w("Geburtstag","عيد ميلاد")} von Nadia. Ihre Familie ${w("bereitete","وجدات")} eine ${w("Überraschung","مفاجأة")} vor.</p>
+<p>Sie ${w("kauften","شراو")} eine große ${w("Torte","الحلوة")} und viele ${w("Geschenke","هدايا")}. Alle ${w("Freunde","الأصحاب")} kamen um sechs Uhr ${w("abends","فالعشية")}.</p>
+<p>Als Nadia die Tür ${w("öffnete","حلات")}, ${w("riefen","صاحو")} alle: "${w("Herzlichen Glückwunsch","مبروك")}!" Sie war sehr ${w("überrascht","متفاجئة")}.</p>
+<p>Es war der ${w("schönste","أحسن")} Tag ${w("des Jahres","فالعام")}.</p>`
+  },
+  {
+    id: "fehler",
+    level: "A2",
+    title: "Ein kleiner Fehler",
+    desc: "غلطة صغيرة",
+    html: `<p>Omar ${w("arbeitete","كان يخدم")} in einem ${w("Restaurant","مطعم")}. Eines Tages ${w("machte","دار")} er einen ${w("Fehler","غلطة")}: Er ${w("brachte","جاب")} dem falschen ${w("Gast","زبون")} das Essen.</p>
+<p>Der Gast war ${w("verwirrt","محتار")}, aber nicht ${w("böse","غاضب")}. Omar ${w("entschuldigte","اعتذر")} sich sofort und ${w("brachte","جاب")} das ${w("richtige","الصحيح")} Essen.</p>
+<p>Der Chef ${w("sah","شاف")} die Situation und ${w("lächelte","تبسم")}. "${w("Jeder","كلشي")} macht Fehler", ${w("sagte","قال")} er. "${w("Wichtig","المهم")} ist, wie man sie ${w("löst","كيحلها")}."</p>
+<p>Omar ${w("lernte","تعلم")} viel an diesem Tag.</p>`
+  },
+  {
+    id: "pruefung",
+    level: "A2",
+    title: "Die Prüfung",
+    desc: "الامتحان",
+    html: `<p>Hind hatte morgen eine wichtige ${w("Prüfung","امتحان")}. Sie war sehr ${w("nervös","قلقانة")} und konnte nicht gut ${w("schlafen","تنعس")}.</p>
+<p>Ihre Mutter ${w("half","عاونات")} ihr, den ${w("Stoff","الدروس")} zu ${w("wiederholen","تعاود")}. Sie ${w("übten","تمرنو")} zusammen bis ${w("spät","لموقر")} in die Nacht.</p>
+<p>Am nächsten Tag war Hind ${w("ruhiger","هادية")}. Die Prüfung war ${w("schwierig","صعيبة")}, aber sie ${w("beantwortete","جاوبات")} alle Fragen ${w("so gut sie konnte","بقد ما تقدر")}.</p>
+<p>Eine Woche ${w("später","من بعد")} bekam sie eine sehr gute ${w("Note","نقطة")}. Ihre ${w("Mühe","التعب")} hatte sich ${w("gelohnt","تسوا")}.</p>`
+  },
+  {
+    id: "berge",
+    level: "B1",
+    title: "Winter in den Bergen",
+    desc: "الشتا فالجبال",
+    html: `<p>Jedes Jahr ${w("verbrachte","كتقضي")} die Familie von Yassine den Winter in einem kleinen ${w("Dorf","دوار")} in den ${w("Bergen","الجبال")}. Der ${w("Schnee","الطلج")} ${w("bedeckte","كيغطي")} die Häuser und die ${w("Straßen","الطرقان")}.</p>
+<p>Yassine ${w("liebte","كان كيحب")} es, mit seinen ${w("Cousins","ولاد عمو")} im Schnee zu ${w("spielen","يلعب")}. Sie ${w("bauten","كيبناو")} einen ${w("Schneemann","رجل الطلج")} und ${w("warfen","كيرمو")} Schneebälle.</p>
+<p>Abends ${w("saß","كتقعد")} die ganze Familie um das ${w("Feuer","النار")} und ${w("erzählte","كتحكي")} alte ${w("Geschichten","حكايات")}. Die ${w("Wärme","السخانة")} des Feuers und die ${w("Stimmen","لأصوات")} der Familie ${w("machten","كيديرو")} ihn sehr ${w("glücklich","فرحان")}.</p>
+<p>Yassine ${w("wusste","كان يعرف")}, dass diese ${w("Erinnerungen","الذكريات")} für immer in seinem ${w("Herzen","القلب")} bleiben würden.</p>`
+  }
+];
+
+let currentFontSize = 1.15;
+let currentLevel = "all";
+
+function renderLevels() {
+  const levels = ["all", "A1", "A2", "B1"];
+  const container = document.getElementById("levels");
+  container.innerHTML = levels.map(l =>
+    `<button class="level-btn ${l===currentLevel?'active':''}" onclick="setLevel('${l}')">${l === 'all' ? 'الكل' : l}</button>`
+  ).join("");
+}
+
+function setLevel(l) {
+  currentLevel = l;
+  renderLevels();
+  renderList();
+}
+
+function renderList() {
+  const list = currentLevel === "all" ? stories : stories.filter(s => s.level === currentLevel);
+  const container = document.getElementById("storyList");
+  container.innerHTML = list.map(s =>
+    `<div class="story-card" onclick="openStory('${s.id}')">
+      <h3>${s.title} <span class="badge">${s.level}</span></h3>
+      <p>${s.desc}</p>
+    </div>`
+  ).join("");
+}
+
+function openStory(id) {
+  const story = stories.find(s => s.id === id);
+  if (!story) return;
+  document.getElementById("listView").style.display = "none";
+  document.getElementById("reader").style.display = "block";
+  document.getElementById("storyTitle").textContent = story.title;
+  document.getElementById("storyText").innerHTML = story.html;
+  document.getElementById("storyText").style.fontSize = currentFontSize + "rem";
+  attachWordHandlers();
+  window.scrollTo(0,0);
+}
+
+function goBack() {
+  document.getElementById("reader").style.display = "none";
+  document.getElementById("listView").style.display = "block";
+  hideTooltip();
+}
+
+function changeFont(delta) {
+  currentFontSize = Math.max(0.85, Math.min(2.0, currentFontSize + delta));
+  document.getElementById("storyText").style.fontSize = currentFontSize + "rem";
+}
+
+function attachWordHandlers() {
+  const words = document.querySelectorAll("#storyText .w");
+  words.forEach(el => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      document.querySelectorAll(".w.active").forEach(x => x.classList.remove("active"));
+      el.classList.add("active");
+      showTooltip(el);
+    });
+  });
+  document.addEventListener("click", hideTooltip);
+}
+
+function showTooltip(el) {
+  const tip = document.getElementById("tooltip");
+  tip.textContent = el.dataset.tr;
+  tip.style.display = "block";
+  const rect = el.getBoundingClientRect();
+  const tipWidth = tip.offsetWidth;
+  let left = rect.left + rect.width/2 - tipWidth/2;
+  left = Math.max(8, Math.min(left, window.innerWidth - tipWidth - 8));
+  tip.style.left = left + "px";
+  tip.style.top = (rect.top - tip.offsetHeight - 10 + window.scrollY) + "px";
+}
+
+function hideTooltip(e) {
+  if (e && e.target.classList.contains("w")) return;
+  document.getElementById("tooltip").style.display = "none";
+  document.querySelectorAll(".w.active").forEach(x => x.classList.remove("active"));
+}
+
+renderLevels();
+renderList();
+
+// ---- Promo modal (download app / fallback form) ----
+// TODO: 3wed had l-link b link dyal l-app f App Store / Play Store / APK
+document.getElementById("downloadLink").href = "#";
+
+function openPromo() {
+  document.getElementById("promoOverlay").style.display = "flex";
+}
+function closePromo() {
+  document.getElementById("promoOverlay").style.display = "none";
+  document.getElementById("promoMsg").textContent = "";
+}
+
+// TODO: bdel had l-URL b l-endpoint dyalek (masalan Formspree: https://formspree.io/f/xxxxx)
+// hadi hiya li ghadi tkhalik tchouf l-emails f dashboard, 7it GitHub Pages ma3andouch backend.
+const PROMO_FORM_ENDPOINT = "";
+
+function submitPromo(e) {
+  e.preventDefault();
+  const name = document.getElementById("promoName").value;
+  const email = document.getElementById("promoEmail").value;
+  const msg = document.getElementById("promoMsg");
+
+  if (PROMO_FORM_ENDPOINT) {
+    fetch(PROMO_FORM_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ name, email })
+    }).then(() => {
+      msg.textContent = "✅ تم الإرسال، شكرا ليك!";
+      document.getElementById("promoForm").reset();
+    }).catch(() => {
+      msg.textContent = "⚠️ وقع مشكل، عاود جرب من بعد.";
+    });
+  } else {
+    // Fallback: khzn f localStorage 7ta ma tkonch 3andek endpoint b3d
+    try {
+      const list = JSON.parse(localStorage.getItem("promo_signups") || "[]");
+      list.push({ name, email, date: new Date().toISOString() });
+      localStorage.setItem("promo_signups", JSON.stringify(list));
+    } catch (err) {}
+    msg.textContent = "✅ تم التسجيل، شكرا ليك!";
+    document.getElementById("promoForm").reset();
+  }
+  return false;
+}
+</script>
+</body>
+</html>
